@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Box Model & Display Property Playground</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f8fafc;
+    }
+
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Range slider custom styles */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      margin-top: -5px;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #1e293b;
+      border-radius: 3px;
+      border: 1px solid #334155;
+    }
+
+    /* Canvas background grid pattern */
+    .canvas-grid-bg {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Outer Margin Visualizer Striping */
+    .margin-visualizer {
+      background-color: rgba(249, 115, 22, 0.18);
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(249, 115, 22, 0.12),
+        rgba(249, 115, 22, 0.12) 10px,
+        rgba(249, 115, 22, 0.25) 10px,
+        rgba(249, 115, 22, 0.25) 20px
+      );
+      border: 1.5px dashed rgba(249, 115, 22, 0.6);
+      transition: all 0.15s ease-out;
+    }
+
+    /* Controlled Box 1 Layer Styling */
+    #box1 {
+      /* Base padding color (Green layer) */
+      background-color: #10b981;
+      /* Base content color layer via background-image gradient + clip (Blue layer) */
+      background-image: linear-gradient(to bottom right, #3b82f6, #6366f1);
+      background-clip: content-box;
+      /* Solid border */
+      border-style: solid;
+      border-color: #f1f5f9;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      transition: all 0.15s ease-out;
+    }
+
+    /* Disabled slider styling */
+    .control-disabled {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(0.7);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-sky-500/20">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            CSS Box Model & Display Studio
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">Interactive Lab</span>
+          </h1>
+          <p class="text-xs text-slate-400">Master content, padding, border, margin layers and display flow mechanics</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Controls -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-slate-400 font-medium mr-1">Presets:</span>
+        <button id="preset-block" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Preset: Block
+        </button>
+        <button id="preset-inline-block" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Preset: Inline-Block
+        </button>
+        <button id="preset-inline" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Preset: Inline
+        </button>
+        <button id="preset-reset" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition">
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+
+    <!-- LEFT SIDEBAR: CONTROLS (5 cols) -->
+    <div class="lg:col-span-5 space-y-5">
+
+      <!-- CARD 1: DISPLAY & BOX-SIZING PROPERTIES -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+            </svg>
+            1. Display & Sizing Mode
+          </h2>
+          <span class="text-xs font-mono bg-sky-500/10 text-sky-400 px-2.5 py-0.5 rounded-full border border-sky-500/20">Box 1 Behavior</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- display property -->
+          <div class="space-y-1.5">
+            <label for="select-display" class="block text-xs font-medium text-slate-300">
+              CSS <code class="text-sky-400">display</code>
+            </label>
+            <select id="select-display" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none font-mono">
+              <option value="block" selected>block</option>
+              <option value="inline-block">inline-block</option>
+              <option value="inline">inline</option>
+            </select>
+          </div>
+
+          <!-- box-sizing property -->
+          <div class="space-y-1.5">
+            <label for="select-box-sizing" class="block text-xs font-medium text-slate-300">
+              CSS <code class="text-sky-400">box-sizing</code>
+            </label>
+            <select id="select-box-sizing" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none font-mono">
+              <option value="content-box" selected>content-box (Default)</option>
+              <option value="border-box">border-box</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic behavior note -->
+        <p id="display-desc-text" class="text-xs text-slate-400 bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+          <strong class="text-sky-400">block:</strong> Takes up full line width by default. Respects width, height, padding, border, and all margins.
+        </p>
+      </div>
+
+      <!-- CARD 2: BOX MODEL DIMENSION SLIDERS -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+            </svg>
+            2. Dimensions & Layers
+          </h2>
+          <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" id="toggle-individual-sides" class="rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-0">
+            <span>Per-Side Controls</span>
+          </label>
+        </div>
+
+        <!-- Width & Height Sliders -->
+        <div id="wrapper-width-height" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="slider-width" class="text-slate-300 font-medium">
+                <code class="text-sky-400">width</code>
+              </label>
+              <span id="val-width" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800">220px</span>
+            </div>
+            <input type="range" id="slider-width" min="80" max="400" value="220" class="w-full">
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="slider-height" class="text-slate-300 font-medium">
+                <code class="text-sky-400">height</code>
+              </label>
+              <span id="val-height" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800">110px</span>
+            </div>
+            <input type="range" id="slider-height" min="60" max="250" value="110" class="w-full">
+          </div>
+        </div>
+
+        <!-- Uniform Padding Slider -->
+        <div id="uniform-padding-container" class="space-y-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <label for="slider-padding" class="text-slate-300 font-medium flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <code class="text-emerald-400">padding</code> (Green Layer)
+            </label>
+            <span id="val-padding" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-emerald-400 border border-slate-800">24px</span>
+          </div>
+          <input type="range" id="slider-padding" min="0" max="60" value="24" class="w-full">
+        </div>
+
+        <!-- Individual Directional Padding Sliders -->
+        <div id="individual-padding-container" class="hidden bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+          <div class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Padding (Individual Sides)
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Top:</span><span id="val-pad-top" class="font-mono text-emerald-400">24px</span></div>
+              <input type="range" id="slider-pad-top" min="0" max="60" value="24" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Right:</span><span id="val-pad-right" class="font-mono text-emerald-400">24px</span></div>
+              <input type="range" id="slider-pad-right" min="0" max="60" value="24" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Bottom:</span><span id="val-pad-bottom" class="font-mono text-emerald-400">24px</span></div>
+              <input type="range" id="slider-pad-bottom" min="0" max="60" value="24" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Left:</span><span id="val-pad-left" class="font-mono text-emerald-400">24px</span></div>
+              <input type="range" id="slider-pad-left" min="0" max="60" value="24" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- Uniform Border Width Slider -->
+        <div id="uniform-border-container" class="space-y-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <label for="slider-border" class="text-slate-300 font-medium flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-100"></span>
+              <code class="text-slate-200">border-width</code> (Solid Line)
+            </label>
+            <span id="val-border" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-slate-200 border border-slate-800">8px</span>
+          </div>
+          <input type="range" id="slider-border" min="0" max="30" value="8" class="w-full">
+        </div>
+
+        <!-- Individual Directional Border Sliders -->
+        <div id="individual-border-container" class="hidden bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+          <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-slate-200"></span> Border Width (Individual Sides)
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Top:</span><span id="val-border-top" class="font-mono text-slate-200">8px</span></div>
+              <input type="range" id="slider-border-top" min="0" max="30" value="8" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Right:</span><span id="val-border-right" class="font-mono text-slate-200">8px</span></div>
+              <input type="range" id="slider-border-right" min="0" max="30" value="8" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Bottom:</span><span id="val-border-bottom" class="font-mono text-slate-200">8px</span></div>
+              <input type="range" id="slider-border-bottom" min="0" max="30" value="8" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Left:</span><span id="val-border-left" class="font-mono text-slate-200">8px</span></div>
+              <input type="range" id="slider-border-left" min="0" max="30" value="8" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- Uniform Margin Slider -->
+        <div id="uniform-margin-container" class="space-y-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <label for="slider-margin" class="text-slate-300 font-medium flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <code class="text-amber-400">margin</code> (Orange Layer)
+            </label>
+            <span id="val-margin" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-amber-400 border border-slate-800">20px</span>
+          </div>
+          <input type="range" id="slider-margin" min="0" max="60" value="20" class="w-full">
+        </div>
+
+        <!-- Individual Directional Margin Sliders -->
+        <div id="individual-margin-container" class="hidden bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+          <div class="text-[11px] font-semibold text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Margin (Individual Sides)
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Top:</span><span id="val-mar-top" class="font-mono text-amber-400">20px</span></div>
+              <input type="range" id="slider-mar-top" min="0" max="60" value="20" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Right:</span><span id="val-mar-right" class="font-mono text-amber-400">20px</span></div>
+              <input type="range" id="slider-mar-right" min="0" max="60" value="20" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Bottom:</span><span id="val-mar-bottom" class="font-mono text-amber-400">20px</span></div>
+              <input type="range" id="slider-mar-bottom" min="0" max="60" value="20" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px]"><span>Left:</span><span id="val-mar-left" class="font-mono text-amber-400">20px</span></div>
+              <input type="range" id="slider-mar-left" min="0" max="60" value="20" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- Border Radius Slider -->
+        <div class="space-y-1.5 pt-1 border-t border-slate-800/80">
+          <div class="flex justify-between items-center text-xs">
+            <label for="slider-radius" class="text-slate-300 font-medium">
+              <code class="text-purple-400">border-radius</code>
+            </label>
+            <span id="val-radius" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-purple-400 border border-slate-800">12px</span>
+          </div>
+          <input type="range" id="slider-radius" min="0" max="40" value="12" class="w-full">
+        </div>
+
+      </div>
+
+      <!-- CARD 3: VISUAL LAYER LEGEND -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl text-xs space-y-2">
+        <span class="font-semibold text-slate-300 block mb-2">Color Coding Legend:</span>
+        <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <span class="w-3.5 h-3.5 rounded bg-gradient-to-r from-blue-500 to-indigo-500 shrink-0"></span>
+            <span class="text-sky-300">Content Box</span>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <span class="w-3.5 h-3.5 rounded bg-emerald-500 shrink-0"></span>
+            <span class="text-emerald-300">Padding Area</span>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <span class="w-3.5 h-3.5 rounded border-2 border-slate-100 shrink-0"></span>
+            <span class="text-slate-200">Solid Border</span>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800">
+            <span class="w-3.5 h-3.5 rounded bg-amber-500/30 border border-amber-500 shrink-0"></span>
+            <span class="text-amber-300">Margin Area</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: STAGE, DEVTOOLS & CODE (7 cols) -->
+    <div class="lg:col-span-7 space-y-5 flex flex-col">
+
+      <!-- INTERACTIVE STAGE CANVAS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col relative min-h-[380px]">
+        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-slate-300">&lt;div class="stage"&gt;</span>
+            <span class="text-slate-500">| Live Layout Interaction</span>
+          </div>
+          <label class="flex items-center gap-1.5 text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" id="toggle-margin-highlight" checked class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0">
+            <span>Show Orange Margin Outline</span>
+          </label>
+        </div>
+
+        <!-- Render Stage -->
+        <div class="canvas-grid-bg bg-slate-950/90 border-2 border-dashed border-slate-800 rounded-xl p-5 relative overflow-auto flex-grow transition-all">
+          
+          <!-- Sample contextual text before -->
+          <span class="text-xs text-slate-500 font-mono select-none">Inline text flow start... </span>
+
+          <!-- Margin Highlight Outer Wrapper -->
+          <div id="margin-visualizer-wrapper" class="margin-visualizer inline-block transition-all align-top rounded-xl">
+            
+            <!-- TARGET BOX 1 (Controlled element) -->
+            <div id="box1" class="select-none text-slate-100 font-sans font-semibold">
+              <div id="box1-content-inner" class="flex flex-col items-center justify-center text-center w-full h-full p-1">
+                <span class="font-bold text-sm tracking-wide text-white drop-shadow">Box 1</span>
+                <span id="box1-dim-badge" class="text-[10px] font-mono text-sky-200/90 bg-slate-950/40 px-2 py-0.5 rounded mt-0.5 border border-white/10">
+                  220 × 110
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SIBLING BOX 2 (Fixed comparison element) -->
+          <div id="box2" class="inline-block bg-slate-800 border-2 border-slate-600 text-slate-300 p-4 rounded-xl shadow-lg font-bold text-sm select-none align-top transition-all my-2">
+            <div class="flex flex-col items-center justify-center">
+              <span>Box 2</span>
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Sibling Element</span>
+            </div>
+          </div>
+
+          <!-- Sample contextual text after -->
+          <span class="text-xs text-slate-500 font-mono select-none"> ...Inline text flow end.</span>
+
+        </div>
+      </div>
+
+      <!-- DEVTOOLS CONCENTRIC BOX MODEL VISUALIZER -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 01-2-2h-2a2 2 0 01-2 2"></path>
+            </svg>
+            DevTools Box Model Diagram
+          </h3>
+          <span id="computed-total-badge" class="text-xs font-mono font-semibold bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+            Rendered Footprint: 284px × 174px
+          </span>
+        </div>
+
+        <!-- Concentric Layers -->
+        <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-center border border-slate-800 select-none overflow-x-auto">
+          <!-- Margin Layer (Orange) -->
+          <div class="bg-amber-950/40 border border-amber-500/40 p-3 rounded-xl text-amber-300">
+            <div class="flex justify-between items-center text-[10px] text-amber-400 mb-1 px-1">
+              <span>margin</span>
+              <span id="dt-mar-top">20</span>
+              <span></span>
+            </div>
+            
+            <!-- Border Layer (Slate) -->
+            <div class="bg-slate-800/80 border border-slate-600 p-3 rounded-lg text-slate-200">
+              <div class="flex justify-between items-center text-[10px] text-slate-300 mb-1 px-1">
+                <span id="dt-mar-left">20</span>
+                <span id="dt-bor-top">8</span>
+                <span id="dt-mar-right">20</span>
+              </div>
+
+              <!-- Padding Layer (Green) -->
+              <div class="bg-emerald-950/60 border border-emerald-500/40 p-3 rounded-md text-emerald-300">
+                <div class="flex justify-between items-center text-[10px] text-emerald-400 mb-1 px-1">
+                  <span id="dt-bor-left">8</span>
+                  <span id="dt-pad-top">24</span>
+                  <span id="dt-bor-right">8</span>
+                </div>
+
+                <!-- Content Layer (Blue) -->
+                <div class="bg-gradient-to-r from-blue-600/80 to-indigo-600/80 border border-sky-400/50 py-3 px-4 rounded text-white font-bold shadow-inner">
+                  <div class="flex justify-between items-center text-[10px] text-sky-200 mb-1">
+                    <span id="dt-pad-left">24</span>
+                    <span id="dt-content-dim" class="text-xs text-white">220 × 110</span>
+                    <span id="dt-pad-right">24</span>
+                  </div>
+                  <span class="text-[10px] uppercase font-semibold tracking-wider text-sky-300">content</span>
+                </div>
+
+                <div class="flex justify-center text-[10px] text-emerald-400 mt-1">
+                  <span id="dt-pad-bottom">24</span>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center text-[10px] text-slate-300 mt-1 px-1">
+                <span></span>
+                <span id="dt-bor-bottom">8</span>
+                <span></span>
+              </div>
+            </div>
+
+            <div class="flex justify-center text-[10px] text-amber-400 mt-1">
+              <span id="dt-mar-bottom">20</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GENERATED CSS CODE OUTPUT -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+            Generated CSS Code
+          </h3>
+          <button id="btn-copy-css" class="px-3 py-1 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+            </svg>
+            <span id="copy-btn-label">Copy CSS</span>
+          </button>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-sky-300 overflow-x-auto">
+          <pre id="css-output-code" class="leading-relaxed"></pre>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-500 text-slate-950 px-4 py-2.5 rounded-xl font-medium text-xs shadow-2xl transition-all opacity-0 translate-y-4 pointer-events-none flex items-center gap-2 z-50">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toast-text">CSS copied to clipboard!</span>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Application State
+      let state = {
+        display: 'block',
+        boxSizing: 'content-box',
+        width: 220,
+        height: 110,
+        useIndividual: false,
+        padding: { top: 24, right: 24, bottom: 24, left: 24 },
+        border: { top: 8, right: 8, bottom: 8, left: 8 },
+        margin: { top: 20, right: 20, bottom: 20, left: 20 },
+        radius: 12,
+        showMarginHighlight: true
+      };
+
+      // Selectors - Dropdowns & Toggles
+      const selectDisplay = document.getElementById('select-display');
+      const selectBoxSizing = document.getElementById('select-box-sizing');
+      const toggleIndividualSides = document.getElementById('toggle-individual-sides');
+      const toggleMarginHighlight = document.getElementById('toggle-margin-highlight');
+
+      // Containers
+      const wrapperWidthHeight = document.getElementById('wrapper-width-height');
+      const uniformPaddingContainer = document.getElementById('uniform-padding-container');
+      const individualPaddingContainer = document.getElementById('individual-padding-container');
+      const uniformBorderContainer = document.getElementById('uniform-border-container');
+      const individualBorderContainer = document.getElementById('individual-border-container');
+      const uniformMarginContainer = document.getElementById('uniform-margin-container');
+      const individualMarginContainer = document.getElementById('individual-margin-container');
+
+      // Sliders - Uniform
+      const sliderWidth = document.getElementById('slider-width');
+      const sliderHeight = document.getElementById('slider-height');
+      const sliderPadding = document.getElementById('slider-padding');
+      const sliderBorder = document.getElementById('slider-border');
+      const sliderMargin = document.getElementById('slider-margin');
+      const sliderRadius = document.getElementById('slider-radius');
+
+      // Labels - Uniform
+      const valWidth = document.getElementById('val-width');
+      const valHeight = document.getElementById('val-height');
+      const valPadding = document.getElementById('val-padding');
+      const valBorder = document.getElementById('val-border');
+      const valMargin = document.getElementById('val-margin');
+      const valRadius = document.getElementById('val-radius');
+
+      // Individual Directional Sliders & Labels
+      const indPads = {
+        top: { slider: document.getElementById('slider-pad-top'), label: document.getElementById('val-pad-top') },
+        right: { slider: document.getElementById('slider-pad-right'), label: document.getElementById('val-pad-right') },
+        bottom: { slider: document.getElementById('slider-pad-bottom'), label: document.getElementById('val-pad-bottom') },
+        left: { slider: document.getElementById('slider-pad-left'), label: document.getElementById('val-pad-left') }
+      };
+
+      const indBors = {
+        top: { slider: document.getElementById('slider-border-top'), label: document.getElementById('val-border-top') },
+        right: { slider: document.getElementById('slider-border-right'), label: document.getElementById('val-border-right') },
+        bottom: { slider: document.getElementById('slider-border-bottom'), label: document.getElementById('val-border-bottom') },
+        left: { slider: document.getElementById('slider-border-left'), label: document.getElementById('val-border-left') }
+      };
+
+      const indMars = {
+        top: { slider: document.getElementById('slider-mar-top'), label: document.getElementById('val-mar-top') },
+        right: { slider: document.getElementById('slider-mar-right'), label: document.getElementById('val-mar-right') },
+        bottom: { slider: document.getElementById('slider-mar-bottom'), label: document.getElementById('val-mar-bottom') },
+        left: { slider: document.getElementById('slider-mar-left'), label: document.getElementById('val-mar-left') }
+      };
+
+      // Stage & Target Elements
+      const box1 = document.getElementById('box1');
+      const marginWrapper = document.getElementById('margin-visualizer-wrapper');
+      const box1DimBadge = document.getElementById('box1-dim-badge');
+      const displayDescText = document.getElementById('display-desc-text');
+
+      // DevTools Elements
+      const computedTotalBadge = document.getElementById('computed-total-badge');
+      const dtMarTop = document.getElementById('dt-mar-top');
+      const dtMarRight = document.getElementById('dt-mar-right');
+      const dtMarBottom = document.getElementById('dt-mar-bottom');
+      const dtMarLeft = document.getElementById('dt-mar-left');
+
+      const dtBorTop = document.getElementById('dt-bor-top');
+      const dtBorRight = document.getElementById('dt-bor-right');
+      const dtBorBottom = document.getElementById('dt-bor-bottom');
+      const dtBorLeft = document.getElementById('dt-bor-left');
+
+      const dtPadTop = document.getElementById('dt-pad-top');
+      const dtPadRight = document.getElementById('dt-pad-right');
+      const dtPadBottom = document.getElementById('dt-pad-bottom');
+      const dtPadLeft = document.getElementById('dt-pad-left');
+      const dtContentDim = document.getElementById('dt-content-dim');
+
+      // Output Elements
+      const cssOutputCode = document.getElementById('css-output-code');
+      const btnCopyCss = document.getElementById('btn-copy-css');
+      const toast = document.getElementById('toast');
+
+      function updateApp() {
+        // Read main state
+        state.display = selectDisplay.value;
+        state.boxSizing = selectBoxSizing.value;
+        state.useIndividual = toggleIndividualSides.checked;
+        state.showMarginHighlight = toggleMarginHighlight.checked;
+
+        state.width = parseInt(sliderWidth.value, 10);
+        state.height = parseInt(sliderHeight.value, 10);
+        state.radius = parseInt(sliderRadius.value, 10);
+
+        if (state.useIndividual) {
+          // Read individual side values
+          ['top', 'right', 'bottom', 'left'].forEach(side => {
+            state.padding[side] = parseInt(indPads[side].slider.value, 10);
+            state.border[side] = parseInt(indBors[side].slider.value, 10);
+            state.margin[side] = parseInt(indMars[side].slider.value, 10);
+
+            indPads[side].label.textContent = `${state.padding[side]}px`;
+            indBors[side].label.textContent = `${state.border[side]}px`;
+            indMars[side].label.textContent = `${state.margin[side]}px`;
+          });
+        } else {
+          // Sync uniform values across sides
+          const padVal = parseInt(sliderPadding.value, 10);
+          const borVal = parseInt(sliderBorder.value, 10);
+          const marVal = parseInt(sliderMargin.value, 10);
+
+          ['top', 'right', 'bottom', 'left'].forEach(side => {
+            state.padding[side] = padVal;
+            state.border[side] = borVal;
+            state.margin[side] = marVal;
+
+            indPads[side].slider.value = padVal;
+            indBors[side].slider.value = borVal;
+            indMars[side].slider.value = marVal;
+          });
+        }
+
+        // Update Uniform Label Badges
+        valWidth.textContent = `${state.width}px`;
+        valHeight.textContent = `${state.height}px`;
+        valPadding.textContent = `${state.padding.top}px`;
+        valBorder.textContent = `${state.border.top}px`;
+        valMargin.textContent = `${state.margin.top}px`;
+        valRadius.textContent = `${state.radius}px`;
+
+        // Toggle Visibility of Directional Containers
+        if (state.useIndividual) {
+          uniformPaddingContainer.classList.add('hidden');
+          individualPaddingContainer.classList.remove('hidden');
+          uniformBorderContainer.classList.add('hidden');
+          individualBorderContainer.classList.remove('hidden');
+          uniformMarginContainer.classList.add('hidden');
+          individualMarginContainer.classList.remove('hidden');
+        } else {
+          uniformPaddingContainer.classList.remove('hidden');
+          individualPaddingContainer.classList.add('hidden');
+          uniformBorderContainer.classList.remove('hidden');
+          individualBorderContainer.classList.add('hidden');
+          uniformMarginContainer.classList.remove('hidden');
+          individualMarginContainer.classList.add('hidden');
+        }
+
+        // Apply Styles to Margin Outer Visualizer
+        marginWrapper.style.display = state.display === 'block' ? 'block' : 'inline-block';
+        marginWrapper.style.padding = `${state.margin.top}px ${state.margin.right}px ${state.margin.bottom}px ${state.margin.left}px`;
+        marginWrapper.style.borderRadius = `${state.radius + 4}px`;
+
+        if (!state.showMarginHighlight) {
+          marginWrapper.classList.remove('margin-visualizer');
+        } else {
+          marginWrapper.classList.add('margin-visualizer');
+        }
+
+        // Apply Styles to Box 1
+        box1.style.display = state.display;
+        box1.style.boxSizing = state.boxSizing;
+
+        // Display mode specific behavior & disabled UI states
+        if (state.display === 'inline') {
+          box1.style.width = 'auto';
+          box1.style.height = 'auto';
+          wrapperWidthHeight.classList.add('control-disabled');
+          displayDescText.innerHTML = '<strong class="text-amber-400">inline:</strong> Flows with surrounding text. Ignores explicit <code class="text-sky-300">width</code> & <code class="text-sky-300">height</code>. Vertical padding and margins will not push adjacent line elements away!';
+        } else if (state.display === 'inline-block') {
+          box1.style.width = `${state.width}px`;
+          box1.style.height = `${state.height}px`;
+          wrapperWidthHeight.classList.remove('control-disabled');
+          displayDescText.innerHTML = '<strong class="text-emerald-400">inline-block:</strong> Flows inline with sibling elements, but fully respects custom <code class="text-sky-300">width</code>, <code class="text-sky-300">height</code>, padding, and margins!';
+        } else {
+          // block
+          box1.style.width = `${state.width}px`;
+          box1.style.height = `${state.height}px`;
+          wrapperWidthHeight.classList.remove('control-disabled');
+          displayDescText.innerHTML = '<strong class="text-sky-400">block:</strong> Takes up its own line line-break. Fully respects explicit dimensions, padding, borders, and margins.';
+        }
+
+        // Apply Padding, Border, Radius
+        box1.style.paddingTop = `${state.padding.top}px`;
+        box1.style.paddingRight = `${state.padding.right}px`;
+        box1.style.paddingBottom = `${state.padding.bottom}px`;
+        box1.style.paddingLeft = `${state.padding.left}px`;
+
+        box1.style.borderTopWidth = `${state.border.top}px`;
+        box1.style.borderRightWidth = `${state.border.right}px`;
+        box1.style.borderBottomWidth = `${state.border.bottom}px`;
+        box1.style.borderLeftWidth = `${state.border.left}px`;
+
+        box1.style.borderRadius = `${state.radius}px`;
+
+        // Update Internal Dimension Badge on Box 1
+        if (state.display === 'inline') {
+          box1DimBadge.textContent = 'Auto Width / Height';
+        } else {
+          box1DimBadge.textContent = `${state.width}px × ${state.height}px`;
+        }
+
+        // DevTools Calculations
+        updateDevToolsDiagram();
+
+        // Generate CSS snippet
+        generateCssOutput();
+      }
+
+      function updateDevToolsDiagram() {
+        dtMarTop.textContent = state.margin.top;
+        dtMarRight.textContent = state.margin.right;
+        dtMarBottom.textContent = state.margin.bottom;
+        dtMarLeft.textContent = state.margin.left;
+
+        dtBorTop.textContent = state.border.top;
+        dtBorRight.textContent = state.border.right;
+        dtBorBottom.textContent = state.border.bottom;
+        dtBorLeft.textContent = state.border.left;
+
+        dtPadTop.textContent = state.padding.top;
+        dtPadRight.textContent = state.padding.right;
+        dtPadBottom.textContent = state.padding.bottom;
+        dtPadLeft.textContent = state.padding.left;
+
+        let contentW = state.width;
+        let contentH = state.height;
+
+        if (state.display === 'inline') {
+          dtContentDim.textContent = 'auto × auto';
+          computedTotalBadge.textContent = 'Rendered Footprint: Fluid Inline';
+          return;
+        }
+
+        if (state.boxSizing === 'border-box') {
+          const horizExtras = state.padding.left + state.padding.right + state.border.left + state.border.right;
+          const vertExtras = state.padding.top + state.padding.bottom + state.border.top + state.border.bottom;
+          contentW = Math.max(0, state.width - horizExtras);
+          contentH = Math.max(0, state.height - vertExtras);
+        }
+
+        dtContentDim.textContent = `${contentW}px × ${contentH}px`;
+
+        // Total Outer Render Footprint
+        const totalW = (state.boxSizing === 'content-box' 
+          ? state.width + state.padding.left + state.padding.right + state.border.left + state.border.right
+          : state.width) + state.margin.left + state.margin.right;
+
+        const totalH = (state.boxSizing === 'content-box'
+          ? state.height + state.padding.top + state.padding.bottom + state.border.top + state.border.bottom
+          : state.height) + state.margin.top + state.margin.bottom;
+
+        computedTotalBadge.textContent = `Rendered Footprint: ${totalW}px × ${totalH}px`;
+      }
+
+      function generateCssOutput() {
+        let css = `#box1 {\n`;
+        css += `  display: ${state.display};\n`;
+        if (state.boxSizing !== 'content-box') css += `  box-sizing: ${state.boxSizing};\n`;
+
+        if (state.display !== 'inline') {
+          css += `  width: ${state.width}px;\n`;
+          css += `  height: ${state.height}px;\n`;
+        }
+
+        // Padding CSS
+        if (allSidesEqual(state.padding)) {
+          css += `  padding: ${state.padding.top}px;\n`;
+        } else {
+          css += `  padding: ${state.padding.top}px ${state.padding.right}px ${state.padding.bottom}px ${state.padding.left}px;\n`;
+        }
+
+        // Border CSS
+        if (allSidesEqual(state.border)) {
+          css += `  border: ${state.border.top}px solid #f1f5f9;\n`;
+        } else {
+          css += `  border-style: solid;\n`;
+          css += `  border-color: #f1f5f9;\n`;
+          css += `  border-width: ${state.border.top}px ${state.border.right}px ${state.border.bottom}px ${state.border.left}px;\n`;
+        }
+
+        // Margin CSS
+        if (allSidesEqual(state.margin)) {
+          css += `  margin: ${state.margin.top}px;\n`;
+        } else {
+          css += `  margin: ${state.margin.top}px ${state.margin.right}px ${state.margin.bottom}px ${state.margin.left}px;\n`;
+        }
+
+        if (state.radius > 0) css += `  border-radius: ${state.radius}px;\n`;
+
+        // Background clip requirement
+        css += `\n  /* Layer Color Coding */\n`;
+        css += `  background-color: #10b981; /* Padding layer */\n`;
+        css += `  background-image: linear-gradient(to right, #3b82f6, #6366f1);\n`;
+        css += `  background-clip: content-box; /* Content layer */\n`;
+        css += `}`;
+
+        cssOutputCode.textContent = css;
+      }
+
+      function allSidesEqual(obj) {
+        return obj.top === obj.right && obj.right === obj.bottom && obj.bottom === obj.left;
+      }
+
+      // Event Listeners for Controls
+      [selectDisplay, selectBoxSizing, toggleIndividualSides, toggleMarginHighlight].forEach(el => {
+        el.addEventListener('change', updateApp);
+      });
+
+      // Uniform Sliders
+      [sliderWidth, sliderHeight, sliderPadding, sliderBorder, sliderMargin, sliderRadius].forEach(slider => {
+        slider.addEventListener('input', updateApp);
+      });
+
+      // Directional Sliders
+      ['top', 'right', 'bottom', 'left'].forEach(side => {
+        indPads[side].slider.addEventListener('input', updateApp);
+        indBors[side].slider.addEventListener('input', updateApp);
+        indMars[side].slider.addEventListener('input', updateApp);
+      });
+
+      // Presets
+      document.getElementById('preset-block').addEventListener('click', () => {
+        selectDisplay.value = 'block';
+        selectBoxSizing.value = 'content-box';
+        sliderWidth.value = 220;
+        sliderHeight.value = 110;
+        sliderPadding.value = 24;
+        sliderBorder.value = 8;
+        sliderMargin.value = 20;
+        toggleIndividualSides.checked = false;
+        updateApp();
+      });
+
+      document.getElementById('preset-inline-block').addEventListener('click', () => {
+        selectDisplay.value = 'inline-block';
+        selectBoxSizing.value = 'content-box';
+        sliderWidth.value = 180;
+        sliderHeight.value = 90;
+        sliderPadding.value = 16;
+        sliderBorder.value = 6;
+        sliderMargin.value = 16;
+        toggleIndividualSides.checked = false;
+        updateApp();
+      });
+
+      document.getElementById('preset-inline').addEventListener('click', () => {
+        selectDisplay.value = 'inline';
+        sliderPadding.value = 12;
+        sliderBorder.value = 4;
+        sliderMargin.value = 12;
+        toggleIndividualSides.checked = false;
+        updateApp();
+      });
+
+      document.getElementById('preset-reset').addEventListener('click', () => {
+        selectDisplay.value = 'block';
+        selectBoxSizing.value = 'content-box';
+        sliderWidth.value = 220;
+        sliderHeight.value = 110;
+        sliderPadding.value = 24;
+        sliderBorder.value = 8;
+        sliderMargin.value = 20;
+        sliderRadius.value = 12;
+        toggleIndividualSides.checked = false;
+        toggleMarginHighlight.checked = true;
+        updateApp();
+      });
+
+      // Copy CSS Code Handler
+      btnCopyCss.addEventListener('click', () => {
+        const textToCopy = cssOutputCode.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand('copy');
+          showToast('CSS copied to clipboard!');
+        } catch (err) {
+          showToast('Copy failed!');
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      });
+
+      function showToast(msg) {
+        toast.querySelector('span').textContent = msg;
+        toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        }, 2200);
+      }
+
+      // Initial Render
+      updateApp();
+
+    });
+  </script>
+</body>
+</html>

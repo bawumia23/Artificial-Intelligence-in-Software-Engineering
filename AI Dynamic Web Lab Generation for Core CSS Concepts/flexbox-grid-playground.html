@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Flexbox & Grid Interactive Playground</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f8fafc;
+    }
+
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Range slider custom styles */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      margin-top: -5px;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #1e293b;
+      border-radius: 3px;
+      border: 1px solid #334155;
+    }
+
+    /* Container canvas grid lines background pattern */
+    .canvas-grid-bg {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Disabled/dimmed panel section transition */
+    .control-group-disabled {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(0.8);
+      transition: all 0.2s ease;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-sky-500 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            CSS Flexbox & Grid Explorer
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Interactive Studio</span>
+          </h1>
+          <p class="text-xs text-slate-400">Experiment with modern CSS container layouts and axis alignment in real time</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Controls -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-slate-400 font-medium mr-1">Presets:</span>
+        <button id="preset-flex-center" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Flex Centered
+        </button>
+        <button id="preset-flex-space" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Flex Space-Between
+        </button>
+        <button id="preset-grid-3col" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Grid 3 Columns
+        </button>
+        <button id="preset-grid-autofit" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Grid Auto-Fit
+        </button>
+        <button id="preset-reset" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition">
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+
+    <!-- LEFT SIDEBAR: CONTROLS (5 cols) -->
+    <div class="lg:col-span-5 space-y-5">
+
+      <!-- CARD 1: DISPLAY MODE & CORE LAYOUT -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+            1. Display Mode
+          </h2>
+          <span class="text-xs font-mono bg-sky-500/10 text-sky-400 px-2.5 py-0.5 rounded-full border border-sky-500/20">Container Property</span>
+        </div>
+
+        <!-- Display Select -->
+        <div class="space-y-2">
+          <label for="select-display" class="block text-sm font-medium text-slate-300">
+            CSS <code class="text-sky-400">display</code>
+          </label>
+          <select id="select-display" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition font-mono">
+            <option value="flex">flex</option>
+            <option value="grid">grid</option>
+            <option value="block">block</option>
+          </select>
+          <p id="display-mode-desc" class="text-xs text-slate-400 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/80">
+            Flexbox creates a 1-dimensional layout axis (rows or columns) for item distribution.
+          </p>
+        </div>
+      </div>
+
+      <!-- CARD 2: FLEXBOX SPECIFIC CONTROLS -->
+      <div id="flex-controls-card" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 transition-all">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            2. Flexbox Settings
+          </h2>
+          <span class="text-xs font-mono bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full border border-indigo-500/20">Flex Only</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- flex-direction -->
+          <div class="space-y-1.5">
+            <label for="select-flex-direction" class="block text-xs font-medium text-slate-300">
+              <code class="text-indigo-400">flex-direction</code>
+            </label>
+            <select id="select-flex-direction" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+              <option value="row">row</option>
+              <option value="column">column</option>
+              <option value="row-reverse">row-reverse</option>
+              <option value="column-reverse">column-reverse</option>
+            </select>
+          </div>
+
+          <!-- flex-wrap -->
+          <div class="space-y-1.5">
+            <label for="select-flex-wrap" class="block text-xs font-medium text-slate-300">
+              <code class="text-indigo-400">flex-wrap</code>
+            </label>
+            <select id="select-flex-wrap" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+              <option value="nowrap">nowrap</option>
+              <option value="wrap">wrap</option>
+              <option value="wrap-reverse">wrap-reverse</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: GRID SPECIFIC CONTROLS -->
+      <div id="grid-controls-card" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 control-group-disabled transition-all">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+            </svg>
+            3. Grid Settings
+          </h2>
+          <span class="text-xs font-mono bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20">Grid Only</span>
+        </div>
+
+        <div class="space-y-3">
+          <!-- grid-template-columns -->
+          <div class="space-y-1.5">
+            <label for="select-grid-columns" class="block text-xs font-medium text-slate-300">
+              <code class="text-emerald-400">grid-template-columns</code>
+            </label>
+            <select id="select-grid-columns" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
+              <option value="1fr 1fr">1fr 1fr (2 Equal Columns)</option>
+              <option value="1fr 1fr 1fr" selected>1fr 1fr 1fr (3 Equal Columns)</option>
+              <option value="200px 1fr">200px 1fr (Fixed + Flexible Sidebar)</option>
+              <option value="1fr 2fr 1fr">1fr 2fr 1fr (Asymmetric Center Hero)</option>
+              <option value="repeat(auto-fit, minmax(130px, 1fr))">repeat(auto-fit, minmax(130px, 1fr))</option>
+              <option value="100px 100px 100px">100px 100px 100px (3 Fixed Columns)</option>
+            </select>
+          </div>
+
+          <!-- grid-template-rows -->
+          <div class="space-y-1.5">
+            <label for="select-grid-rows" class="block text-xs font-medium text-slate-300">
+              <code class="text-emerald-400">grid-template-rows</code>
+            </label>
+            <select id="select-grid-rows" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
+              <option value="auto">auto (Default Row Heights)</option>
+              <option value="100px 100px">100px 100px (Explicit Heights)</option>
+              <option value="repeat(3, 90px)">repeat(3, 90px)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: ALIGNMENT & SPACING (COMMON TO FLEX & GRID) -->
+      <div id="alignment-controls-card" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+            </svg>
+            4. Alignment & Spacing
+          </h2>
+          <span class="text-xs font-mono bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20">Common</span>
+        </div>
+
+        <div class="space-y-3">
+          <!-- justify-content -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="select-justify-content" class="text-slate-300 font-medium">
+                <code class="text-amber-400">justify-content</code> <span class="text-slate-500 font-sans">(Main Axis / Horizontal)</span>
+              </label>
+            </div>
+            <select id="select-justify-content" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none font-mono">
+              <option value="flex-start">flex-start / start</option>
+              <option value="center">center</option>
+              <option value="flex-end">flex-end / end</option>
+              <option value="space-between">space-between</option>
+              <option value="space-around">space-around</option>
+              <option value="space-evenly">space-evenly</option>
+            </select>
+          </div>
+
+          <!-- align-items -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="select-align-items" class="text-slate-300 font-medium">
+                <code class="text-amber-400">align-items</code> <span class="text-slate-500 font-sans">(Cross Axis / Vertical)</span>
+              </label>
+            </div>
+            <select id="select-align-items" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none font-mono">
+              <option value="stretch">stretch</option>
+              <option value="center">center</option>
+              <option value="flex-start">flex-start / start</option>
+              <option value="flex-end">flex-end / end</option>
+              <option value="baseline">baseline</option>
+            </select>
+          </div>
+
+          <!-- gap slider -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex justify-between items-center text-xs">
+              <label for="slider-gap" class="text-slate-300 font-medium">
+                <code class="text-amber-400">gap</code>
+              </label>
+              <span id="val-gap" class="font-mono text-xs bg-slate-950 px-2 py-0.5 rounded text-amber-400 border border-slate-800">16px</span>
+            </div>
+            <input type="range" id="slider-gap" min="0" max="48" value="16" class="w-full">
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 5: CONTAINER & ITEM MANAGEMENT -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            5. Canvas & Items Options
+          </h2>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- Item Count Controls -->
+          <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-slate-300 font-medium">Child Items Count:</span>
+            <div class="flex items-center gap-2">
+              <button id="btn-remove-item" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center justify-center transition">
+                -
+              </button>
+              <span id="items-count-display" class="font-mono text-sm font-bold text-sky-400 w-5 text-center">5</span>
+              <button id="btn-add-item" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center justify-center transition">
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Variable Content / Height Toggle -->
+          <label class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 cursor-pointer select-none">
+            <span class="text-slate-300 font-medium">Vary Item Content Heights:</span>
+            <input type="checkbox" id="toggle-variable-heights" checked class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 w-4 h-4">
+          </label>
+
+          <!-- Container Min-Height slider -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-300 font-medium">Container Min-Height:</span>
+              <span id="val-min-height" class="font-mono text-purple-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">280px</span>
+            </div>
+            <input type="range" id="slider-min-height" min="180" max="500" value="280" class="w-full">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: INTERACTIVE STAGE & VISUALIZER (7 cols) -->
+    <div class="lg:col-span-7 space-y-5 flex flex-col">
+
+      <!-- Dynamic Axis Indicator Header -->
+      <div id="axis-guide-bar" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 px-5 flex items-center justify-between text-xs transition-all">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="font-semibold text-slate-300">Active Main Axis:</span>
+          <span id="axis-main-label" class="font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">
+            Horizontal (Left to Right)
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Cross Axis:</span>
+          <span id="axis-cross-label" class="font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
+            Vertical (Top to Bottom)
+          </span>
+        </div>
+      </div>
+
+      <!-- MAIN PLAYGROUND CANVAS CONTAINER -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative flex-grow flex flex-col justify-between min-h-[380px]">
+        
+        <!-- Canvas Stage Toolbar Header -->
+        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800/80 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-slate-400">&lt;div class="container"&gt;</span>
+          </div>
+          <span id="canvas-status-badge" class="font-mono text-[11px] bg-slate-800 text-sky-400 px-2.5 py-0.5 rounded-full border border-slate-700">
+            display: flex
+          </span>
+        </div>
+
+        <!-- Render Stage Canvas (Parent Div Container) -->
+        <div class="canvas-grid-bg bg-slate-950/90 border-2 border-dashed border-slate-700/80 rounded-xl p-4 relative overflow-auto flex-grow transition-all" id="playground-canvas">
+          <!-- Item boxes will be populated dynamically by JS -->
+        </div>
+
+        <!-- Interactive Hint Callout -->
+        <div id="layout-hint-box" class="mt-4 p-3 bg-indigo-950/30 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 flex items-center gap-3">
+          <div class="p-1.5 bg-indigo-500/20 rounded-lg text-indigo-400 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <span id="layout-hint-text">
+            Flexbox items are currently laid out horizontally along the main row axis.
+          </span>
+        </div>
+
+      </div>
+
+      <!-- GENERATED CSS CODE OUTPUT -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Generated CSS Rules
+          </h3>
+          <button id="btn-copy-css" class="px-3 py-1 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+            </svg>
+            <span id="copy-btn-label">Copy CSS</span>
+          </button>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-sky-300 overflow-x-auto">
+          <pre id="css-output-code" class="leading-relaxed"></pre>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-500 text-slate-950 px-4 py-2.5 rounded-xl font-medium text-xs shadow-2xl transition-all opacity-0 translate-y-4 pointer-events-none flex items-center gap-2 z-50">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toast-text">CSS copied to clipboard!</span>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Distinct color palettes for child items (Each item gets a unique vivid style)
+      const itemStyles = [
+        { bg: 'from-violet-600 to-indigo-600', border: 'border-violet-400', label: 'Item 1', badge: 'bg-violet-950/80 text-violet-300 border-violet-500/30' },
+        { bg: 'from-emerald-600 to-teal-600', border: 'border-emerald-400', label: 'Item 2', badge: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' },
+        { bg: 'from-rose-600 to-pink-600', border: 'border-rose-400', label: 'Item 3', badge: 'bg-rose-950/80 text-rose-300 border-rose-500/30' },
+        { bg: 'from-amber-600 to-orange-600', border: 'border-amber-400', label: 'Item 4', badge: 'bg-amber-950/80 text-amber-300 border-amber-500/30' },
+        { bg: 'from-sky-600 to-blue-600', border: 'border-sky-400', label: 'Item 5', badge: 'bg-sky-950/80 text-sky-300 border-sky-500/30' },
+        { bg: 'from-fuchsia-600 to-purple-600', border: 'border-fuchsia-400', label: 'Item 6', badge: 'bg-fuchsia-950/80 text-fuchsia-300 border-fuchsia-500/30' },
+        { bg: 'from-cyan-600 to-teal-600', border: 'border-cyan-400', label: 'Item 7', badge: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/30' },
+        { bg: 'from-lime-600 to-emerald-600', border: 'border-lime-400', label: 'Item 8', badge: 'bg-lime-950/80 text-lime-300 border-lime-500/30' }
+      ];
+
+      // Sample content heights for testing align-items baseline/stretch
+      const itemHeights = ['h-20', 'h-28', 'h-16', 'h-32', 'h-24', 'h-28', 'h-20', 'h-24'];
+
+      // App State
+      let state = {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'nowrap',
+        gridColumns: '1fr 1fr 1fr',
+        gridRows: 'auto',
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+        gap: 16,
+        itemsCount: 5,
+        variableHeights: true,
+        minHeight: 280
+      };
+
+      // DOM Elements - Selects & Inputs
+      const selectDisplay = document.getElementById('select-display');
+      const selectFlexDirection = document.getElementById('select-flex-direction');
+      const selectFlexWrap = document.getElementById('select-flex-wrap');
+      const selectGridColumns = document.getElementById('select-grid-columns');
+      const selectGridRows = document.getElementById('select-grid-rows');
+      const selectJustifyContent = document.getElementById('select-justify-content');
+      const selectAlignItems = document.getElementById('select-align-items');
+
+      const sliderGap = document.getElementById('slider-gap');
+      const valGap = document.getElementById('val-gap');
+      const sliderMinHeight = document.getElementById('slider-min-height');
+      const valMinHeight = document.getElementById('val-min-height');
+      const toggleVariableHeights = document.getElementById('toggle-variable-heights');
+
+      // Card Container Elements
+      const flexControlsCard = document.getElementById('flex-controls-card');
+      const gridControlsCard = document.getElementById('grid-controls-card');
+      const displayModeDesc = document.getElementById('display-mode-desc');
+
+      // Stage & Output Elements
+      const playgroundCanvas = document.getElementById('playground-canvas');
+      const canvasStatusBadge = document.getElementById('canvas-status-badge');
+      const axisMainLabel = document.getElementById('axis-main-label');
+      const axisCrossLabel = document.getElementById('axis-cross-label');
+      const layoutHintText = document.getElementById('layout-hint-text');
+      const cssOutputCode = document.getElementById('css-output-code');
+
+      // Items Count Elements
+      const itemsCountDisplay = document.getElementById('items-count-display');
+      const btnAddItem = document.getElementById('btn-add-item');
+      const btnRemoveItem = document.getElementById('btn-remove-item');
+
+      // Presets Buttons
+      const presetFlexCenter = document.getElementById('preset-flex-center');
+      const presetFlexSpace = document.getElementById('preset-flex-space');
+      const presetGrid3Col = document.getElementById('preset-grid-3col');
+      const presetGridAutofit = document.getElementById('preset-grid-autofit');
+      const presetReset = document.getElementById('preset-reset');
+
+      // Copy & Toast
+      const btnCopyCss = document.getElementById('btn-copy-css');
+      const copyBtnLabel = document.getElementById('copy-btn-label');
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+
+      // Render Child Items inside canvas
+      function renderCanvasItems() {
+        playgroundCanvas.innerHTML = '';
+
+        for (let i = 0; i < state.itemsCount; i++) {
+          const styleConfig = itemStyles[i % itemStyles.length];
+          const heightClass = state.variableHeights ? itemHeights[i % itemHeights.length] : 'h-24';
+
+          const itemEl = document.createElement('div');
+          itemEl.className = `bg-gradient-to-br ${styleConfig.bg} border-2 ${styleConfig.border} rounded-xl p-3 shadow-lg flex flex-col justify-between transition-all select-none min-w-[70px] ${heightClass}`;
+          
+          itemEl.innerHTML = `
+            <div class="flex items-center justify-between gap-1">
+              <span class="font-mono font-bold text-xs text-white drop-shadow-sm">${i + 1}</span>
+              <span class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${styleConfig.badge}">
+                item ${i + 1}
+              </span>
+            </div>
+            <div class="text-[11px] font-mono text-white/80 font-medium tracking-tight">
+              .item-${i + 1}
+            </div>
+          `;
+
+          playgroundCanvas.appendChild(itemEl);
+        }
+      }
+
+      // Update Layout & Styles
+      function updatePlayground() {
+        // Read form values
+        state.display = selectDisplay.value;
+        state.flexDirection = selectFlexDirection.value;
+        state.flexWrap = selectFlexWrap.value;
+        state.gridColumns = selectGridColumns.value;
+        state.gridRows = selectGridRows.value;
+        state.justifyContent = selectJustifyContent.value;
+        state.alignItems = selectAlignItems.value;
+        state.gap = parseInt(sliderGap.value, 10);
+        state.minHeight = parseInt(sliderMinHeight.value, 10);
+        state.variableHeights = toggleVariableHeights.checked;
+
+        valGap.textContent = `${state.gap}px`;
+        valMinHeight.textContent = `${state.minHeight}px`;
+        itemsCountDisplay.textContent = state.itemsCount;
+
+        // Apply styles to container element
+        playgroundCanvas.style.display = state.display;
+        playgroundCanvas.style.minHeight = `${state.minHeight}px`;
+        playgroundCanvas.style.gap = `${state.gap}px`;
+
+        if (state.display === 'flex') {
+          flexControlsCard.classList.remove('control-group-disabled');
+          gridControlsCard.classList.add('control-group-disabled');
+
+          playgroundCanvas.style.flexDirection = state.flexDirection;
+          playgroundCanvas.style.flexWrap = state.flexWrap;
+          playgroundCanvas.style.justifyContent = state.justifyContent;
+          playgroundCanvas.style.alignItems = state.alignItems;
+
+          // Clear Grid properties
+          playgroundCanvas.style.gridTemplateColumns = '';
+          playgroundCanvas.style.gridTemplateRows = '';
+
+          displayModeDesc.textContent = 'Flexbox is active. Items align along 1 main axis (row or column) with flex distribution.';
+          canvasStatusBadge.textContent = `display: flex (${state.flexDirection})`;
+
+          // Update Axis Guides
+          if (state.flexDirection.includes('row')) {
+            axisMainLabel.textContent = state.flexDirection === 'row-reverse' ? 'Horizontal (Right to Left ◄)' : 'Horizontal (Left to Right ►)';
+            axisCrossLabel.textContent = 'Vertical (Top to Bottom ▼)';
+            layoutHintText.textContent = `Main axis is horizontal (${state.flexDirection}). 'justify-content' aligns items horizontally, while 'align-items' aligns them vertically.`;
+          } else {
+            axisMainLabel.textContent = state.flexDirection === 'column-reverse' ? 'Vertical (Bottom to Top ▲)' : 'Vertical (Top to Bottom ▼)';
+            axisCrossLabel.textContent = 'Horizontal (Left to Right ►)';
+            layoutHintText.textContent = `Main axis is vertical (${state.flexDirection}). 'justify-content' aligns items vertically, while 'align-items' aligns them horizontally!`;
+          }
+
+        } else if (state.display === 'grid') {
+          gridControlsCard.classList.remove('control-group-disabled');
+          flexControlsCard.classList.add('control-group-disabled');
+
+          playgroundCanvas.style.gridTemplateColumns = state.gridColumns;
+          playgroundCanvas.style.gridTemplateRows = state.gridRows;
+          playgroundCanvas.style.justifyContent = state.justifyContent;
+          playgroundCanvas.style.alignItems = state.alignItems;
+
+          // Clear Flex properties
+          playgroundCanvas.style.flexDirection = '';
+          playgroundCanvas.style.flexWrap = '';
+
+          displayModeDesc.textContent = 'CSS Grid is active. Items align in a 2-dimensional matrix of tracks (columns and rows).';
+          canvasStatusBadge.textContent = `display: grid (${state.gridColumns})`;
+
+          axisMainLabel.textContent = 'Columns Track (X Axis)';
+          axisCrossLabel.textContent = 'Rows Track (Y Axis)';
+          layoutHintText.textContent = `Grid active with columns template '${state.gridColumns}'. Items automatically position into tracks.`;
+
+        } else {
+          // Block display
+          flexControlsCard.classList.add('control-group-disabled');
+          gridControlsCard.classList.add('control-group-disabled');
+
+          playgroundCanvas.style.flexDirection = '';
+          playgroundCanvas.style.flexWrap = '';
+          playgroundCanvas.style.gridTemplateColumns = '';
+          playgroundCanvas.style.gridTemplateRows = '';
+          playgroundCanvas.style.justifyContent = '';
+          playgroundCanvas.style.alignItems = '';
+
+          displayModeDesc.textContent = 'Standard Block flow. Items stack vertically as full-width block elements.';
+          canvasStatusBadge.textContent = 'display: block';
+
+          axisMainLabel.textContent = 'Vertical Flow';
+          axisCrossLabel.textContent = 'N/A';
+          layoutHintText.textContent = `Standard block flow. Each child element breaks onto a new vertical line. Flex & Grid alignment rules are inactive.`;
+        }
+
+        // Re-render item divs
+        renderCanvasItems();
+
+        // Generate formatted CSS code
+        generateCssCode();
+      }
+
+      function generateCssCode() {
+        let css = `.container {\n`;
+        css += `  display: ${state.display};\n`;
+
+        if (state.display === 'flex') {
+          if (state.flexDirection !== 'row') css += `  flex-direction: ${state.flexDirection};\n`;
+          if (state.flexWrap !== 'nowrap') css += `  flex-wrap: ${state.flexWrap};\n`;
+          css += `  justify-content: ${state.justifyContent};\n`;
+          css += `  align-items: ${state.alignItems};\n`;
+        } else if (state.display === 'grid') {
+          css += `  grid-template-columns: ${state.gridColumns};\n`;
+          if (state.gridRows !== 'auto') css += `  grid-template-rows: ${state.gridRows};\n`;
+          css += `  justify-content: ${state.justifyContent};\n`;
+          css += `  align-items: ${state.alignItems};\n`;
+        }
+
+        if (state.gap > 0) css += `  gap: ${state.gap}px;\n`;
+        css += `  min-height: ${state.minHeight}px;\n`;
+        css += `}\n\n`;
+
+        css += `/* Child Items */\n`;
+        css += `.container > div {\n`;
+        css += `  border-radius: 0.75rem;\n`;
+        css += `  padding: 0.75rem;\n`;
+        css += `}`;
+
+        cssOutputCode.textContent = css;
+      }
+
+      // Event Listeners for Controls
+      [
+        selectDisplay, selectFlexDirection, selectFlexWrap,
+        selectGridColumns, selectGridRows, selectJustifyContent, selectAlignItems,
+        sliderGap, sliderMinHeight, toggleVariableHeights
+      ].forEach(el => {
+        el.addEventListener('change', updatePlayground);
+        el.addEventListener('input', updatePlayground);
+      });
+
+      // Add/Remove Child Items
+      btnAddItem.addEventListener('click', () => {
+        if (state.itemsCount < 8) {
+          state.itemsCount++;
+          updatePlayground();
+        }
+      });
+
+      btnRemoveItem.addEventListener('click', () => {
+        if (state.itemsCount > 1) {
+          state.itemsCount--;
+          updatePlayground();
+        }
+      });
+
+      // Preset Handlers
+      presetFlexCenter.addEventListener('click', () => {
+        selectDisplay.value = 'flex';
+        selectFlexDirection.value = 'row';
+        selectFlexWrap.value = 'nowrap';
+        selectJustifyContent.value = 'center';
+        selectAlignItems.value = 'center';
+        sliderGap.value = 16;
+        state.itemsCount = 4;
+        updatePlayground();
+      });
+
+      presetFlexSpace.addEventListener('click', () => {
+        selectDisplay.value = 'flex';
+        selectFlexDirection.value = 'row';
+        selectFlexWrap.value = 'nowrap';
+        selectJustifyContent.value = 'space-between';
+        selectAlignItems.value = 'center';
+        sliderGap.value = 20;
+        state.itemsCount = 4;
+        updatePlayground();
+      });
+
+      presetGrid3Col.addEventListener('click', () => {
+        selectDisplay.value = 'grid';
+        selectGridColumns.value = '1fr 1fr 1fr';
+        selectGridRows.value = 'auto';
+        selectJustifyContent.value = 'stretch';
+        selectAlignItems.value = 'stretch';
+        sliderGap.value = 16;
+        state.itemsCount = 6;
+        updatePlayground();
+      });
+
+      presetGridAutofit.addEventListener('click', () => {
+        selectDisplay.value = 'grid';
+        selectGridColumns.value = 'repeat(auto-fit, minmax(130px, 1fr))';
+        selectGridRows.value = 'auto';
+        selectJustifyContent.value = 'stretch';
+        selectAlignItems.value = 'stretch';
+        sliderGap.value = 16;
+        state.itemsCount = 6;
+        updatePlayground();
+      });
+
+      presetReset.addEventListener('click', () => {
+        selectDisplay.value = 'flex';
+        selectFlexDirection.value = 'row';
+        selectFlexWrap.value = 'nowrap';
+        selectGridColumns.value = '1fr 1fr 1fr';
+        selectGridRows.value = 'auto';
+        selectJustifyContent.value = 'flex-start';
+        selectAlignItems.value = 'stretch';
+        sliderGap.value = 16;
+        sliderMinHeight.value = 280;
+        toggleVariableHeights.checked = true;
+        state.itemsCount = 5;
+        updatePlayground();
+      });
+
+      // Copy CSS Code Functionality
+      btnCopyCss.addEventListener('click', () => {
+        const textToCopy = cssOutputCode.textContent;
+        
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand('copy');
+          showToast('CSS copied to clipboard!');
+        } catch (err) {
+          showToast('Copy failed!');
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      });
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        }, 2200);
+      }
+
+      // Initial Render Initialization
+      updatePlayground();
+
+    });
+  </script>
+</body>
+</html>
